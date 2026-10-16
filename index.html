@@ -282,7 +282,7 @@ async function pushCloudNow(quiet=false){
  cloudBusy=true;
  try{
   const payload=JSON.stringify(S);
-  const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID,{method:'PUT',headers:{'Content-Type':'application/json','X-Access-Key':key,'X-Bin-Versioning':'true'},body:payload});
+  const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID,{method:'PUT',headers:{'Content-Type':'application/json','X-Access-Key':key},body:payload});
   if(!res.ok){const detail=await res.text();throw new Error('JSONBin 저장 실패 ('+res.status+'): '+detail);}
   localStorage.setItem('affinityneo_cloud_enabled','1');
   cloudLastSnapshot=payload;
