@@ -38,7 +38,7 @@ td.alr,.rw:hover>td.alr{background:#e2445c24}.tg{display:inline-block;padding:2p
 .box{background:var(--sf);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:18px}.box h3,h3{margin:0 0 10px;font-size:15px}.nv th{background:var(--nv);color:#fff;border-color:#ffffff30;border-top:1px solid #ffffff30}.nv td{text-align:center;height:38px;padding:0 8px}.nv .gn{font-weight:700;width:130px}.nv .l{text-align:left}.nv .tot td{background:var(--nv);color:#fff;font-weight:800}.num{font-weight:700;font-size:15px}.rd{color:var(--red)}.or{color:#d78410}
 .pl{display:inline-block;font-size:12px;font-weight:600;padding:3px 9px;border-radius:5px}.pb{height:10px;background:var(--sf2);border-radius:5px;overflow:hidden;margin:8px 0 12px}.pb i{display:block;height:100%;background:var(--green)}tr.dn td{opacity:.55}.empty{padding:30px;text-align:center;color:var(--mu)}.fx{display:flex;align-items:center;gap:8px;justify-content:space-between}
 </style></head><body>
-<header><div class="logo">Affinity<span>Neo</span></div><div class="grow"></div><span class="mu" id="todayLabel"></span><button onclick="settings()" title="답변 대기 기준일 설정">설정</button><button onclick="theme()">라이트/다크</button><button onclick="exportData()">백업</button><button onclick="$('importFile').click()">가져오기</button><input id="importFile" type="file" accept=".json" hidden onchange="importData(event)"></header>
+<header><div class="logo">Affinity<span>Neo</span></div><div class="grow"></div><span class="mu" id="todayLabel"></span><button onclick="syncSettings()" title="여러 기기 데이터 동기화">기기 동기화</button><button onclick="settings()" title="답변 대기 기준일 설정">설정</button><button onclick="theme()">라이트/다크</button><button onclick="exportData()">백업</button><button onclick="$('importFile').click()">가져오기</button><input id="importFile" type="file" accept=".json" hidden onchange="importData(event)"></header>
 <main>
 <div class="vt" id="vt"></div>
 <div class="tb" id="tb"><input class="search" id="search" placeholder="검색" oninput="cfg().q=this.value;render()"><button id="b-w" onclick="openP(event,'person')"></button><button id="b-f" onclick="openP(event,'filter')"></button><button id="b-s" onclick="openP(event,'sort')"></button><button id="b-h" onclick="openP(event,'hide')"></button><button id="b-g" onclick="openP(event,'group')"></button></div>
@@ -58,7 +58,7 @@ const SEED=[['북스','김보민 펜립 수정 메일 발송','진행 전','긴�
 const CHK=[['전날 밤','내일 마감 업무','내일 마감인 업무를 모두 확인하고 우선순위 설정',''],['전날 밤','수업 일정','내일 수업 일정 안내',''],['휴강은 전날 밤 · 재개는 이틀 전','첫 수업 안내','첫 수업이라면 학부모 첫인사 메시지 필요 여부 확인','회사 구글 독스 양식 링크'],['휴강은 전날 밤 · 재개는 이틀 전','휴강·재개 안내','휴강 후 재개 수업은 전날·당일 안내 여부 체크','재개일 전날 + 당일'],['휴강은 전날 밤 · 재개는 이틀 전','대기 업무','답변·파일 대기 업무의 후속 확인일 점검',''],['오전','장기 미진행 업무','진척 없는 업무를 확인하고 다음 행동 제안',''],['즉시','일정 충돌·누락 위험','충돌 또는 지연 위험이 있으면 즉시 보고',''],['전날 밤','투두메이트','오늘 실제 처리할 핵심 업무만 오늘 목록에 등록','내일 업무는 내일 목록에'],['중요 이슈 발생 시','즉시 보고','문제·영향·해결안·대체 일정 함께 보고',''],['업무 완료 시','완료 보드 이동','완료일 기록 후 진행 중 보드에서 제거',''],['업무 완료 시','결과 확인','사용자 완료 보고를 기준으로 처리하고, 필요하면 결과 링크 기록',''],['수업 휴강 시','재개 일정 등록','재개일과 전날/당일 안내 체크를 등록',''],['매일 보고','오전 요약','오늘 할 일·우선순위·마감·주의사항 간단히 보고','']];
 let S,selected=new Set(),col=new Set(),open=new Set(),GL={},GV=[],P=null,LK='',drag=null,tt;
 const newCfg=()=>({group:'company',sort:'none',fs:[],fp:[],fw:[],hidden:[],q:''}),L0=a=>a.map(x=>({n:x[0],c:x[1],d:!!x[2]}));
-const LB=k=>S.labels[k],lf=(k,n)=>LB(k).find(x=>x.n===n),lc=(k,n)=>(lf(k,n)||{}).c||'#808080',isDN=n=>!!(lf('status',n)||{}).d,isD=t=>isDN(t.status),gc=n=>(S.groups.find(g=>g.name===n)||{}).color||'#808080',V=()=>S.views.find(v=>v.id===S.cur)||S.views[0],cfg=()=>V().cfg,find=id=>S.tasks.find(t=>t.id===id),save=()=>localStorage.setItem('affinityneo_v3',JSON.stringify(S));
+const LB=k=>S.labels[k],lf=(k,n)=>LB(k).find(x=>x.n===n),lc=(k,n)=>(lf(k,n)||{}).c||'#808080',isDN=n=>!!(lf('status',n)||{}).d,isD=t=>isDN(t.status),gc=n=>(S.groups.find(g=>g.name===n)||{}).color||'#808080',V=()=>S.views.find(v=>v.id===S.cur)||S.views[0],cfg=()=>V().cfg,find=id=>S.tasks.find(t=>t.id===id),save=()=>{localStorage.setItem('affinityneo_v3',JSON.stringify(S));queueCloudSave()};
 function load(){let raw=null;try{raw=JSON.parse(localStorage.getItem('affinityneo_v3'))}catch(e){}
 if(!raw){try{raw={tasks:JSON.parse(localStorage.getItem('affinityneo_tasks_v2')),groups:JSON.parse(localStorage.getItem('affinityneo_groups_v2'))}}catch(e){raw={}}}
 S=raw||{};S.tasks=S.tasks||SEED.map((r,i)=>({id:i+1,company:r[0],task:r[1],status:r[2],priority:r[3],due:'',memo:r[4]||'',person:'최선혜',doneAt:r[2]==='완료'?today():'',subs:(r[5]||[]).map((s,j)=>({id:(i+1)*100+j,task:s,status:'진행 전',due:'',memo:''}))}));
@@ -216,6 +216,110 @@ function settings(){ask('답변 대기 리마인드 기준 (요청 후 며칠 �
 function theme(){let n=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=n;localStorage.setItem('affinityneo_theme',n)}
 function exportData(){let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,2)],{type:'application/json'}));a.download='AffinityNeo-업무백업.json';a.click();URL.revokeObjectURL(a.href)}
 function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let d=JSON.parse(r.result);if(Array.isArray(d))d={tasks:d};if(!Array.isArray(d.tasks))throw 0;localStorage.setItem('affinityneo_v3',JSON.stringify(d));load();render();toast('가져왔어요.')}catch(x){toast('파일 형식이 올바르지 않아요.')}};r.readAsText(f);e.target.value=''}
+
+/* ---------- JSONBin cloud sync ---------- */
+const CLOUD_BIN_ID='6ad18e5fac6210605a35e11e';
+let cloudSaveTimer=null,cloudBusy=false,cloudLastSnapshot='',cloudPollTimer=null;
+function cloudKey(){return localStorage.getItem('affinityneo_jsonbin_access_key')||''}
+function cloudEnabled(){return localStorage.getItem('affinityneo_cloud_enabled')==='1'}
+function queueCloudSave(){
+ if(!cloudEnabled()||!cloudKey()||cloudBusy)return;
+ clearTimeout(cloudSaveTimer);
+ cloudSaveTimer=setTimeout(()=>pushCloudNow(true),1400);
+}
+function syncSettings(){
+ const key=cloudKey();
+ modal(`<h2>기기 간 데이터 동기화</h2>
+ <p class="mu" style="line-height:1.7">JSONBin의 <b>Access Key</b>를 입력해 주세요. Master Key는 사이트 코드에 넣지 마세요. Access Key는 JSONBin에서 <b>Bins Read + Update만 허용</b>하고 Create/Delete는 끄는 것을 권장해요.</p>
+ <label for="cloudKeyInput">JSONBin Access Key</label>
+ <input id="cloudKeyInput" class="inp" type="password" autocomplete="off" placeholder="Access Key 붙여넣기" value="${esc(key)}" style="margin:6px 0 12px">
+ <p class="mu">같은 Access Key를 다른 기기에서도 한 번 입력해야 해요. 연결 후 데이터는 JSONBin에 저장되고, 이 브라우저의 변경 사항은 자동으로 업로드돼요.</p>
+ <div class="ma" style="justify-content:space-between;flex-wrap:wrap">
+ <button onclick="closeM()">닫기</button>
+ <button onclick="saveCloudKey()">키 저장</button>
+ <button onclick="pullCloud(false)">클라우드 데이터 불러오기</button>
+ <button class="primary" onclick="pushCloudNow(false)">이 기기 데이터를 클라우드에 올리기</button>
+ </div>`);
+}
+function saveCloudKey(){
+ const key=$('cloudKeyInput')?.value.trim();
+ if(!key){toast('Access Key를 입력해 주세요.');return}
+ localStorage.setItem('affinityneo_jsonbin_access_key',key);
+ toast('Access Key를 이 기기에 저장했어요. 이제 불러오기 또는 올리기를 선택해 주세요.');
+}
+async function pullCloud(quiet=false){
+ const key=$('cloudKeyInput')?.value.trim()||cloudKey();
+ if(!key){toast('먼저 JSONBin Access Key를 입력하고 키 저장을 눌러 주세요.');return}
+ localStorage.setItem('affinityneo_jsonbin_access_key',key);
+ if(cloudBusy)return;
+ cloudBusy=true;
+ try{
+  const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID+'/latest',{headers:{'X-Access-Key':key,'X-Bin-Meta':'false'}});
+  if(!res.ok)throw new Error('JSONBin 읽기 실패 ('+res.status+'). Access Key에 Bins Read 권한이 있는지 확인해 주세요.');
+  const data=await res.json();
+  const remote=data.record||data;
+  if(!remote||!Array.isArray(remote.tasks)||!Array.isArray(remote.groups)){
+   throw new Error('Bin에 AffinityNeo 업무 데이터가 없거나 형식이 달라요. 데이터를 덮어쓰지 않았어요. 먼저 올리기를 선택하거나 Bin을 확인해 주세요.');
+  }
+  localStorage.setItem('affinityneo_cloud_enabled','0');
+  localStorage.setItem('affinityneo_v3',JSON.stringify(remote));
+  load();
+  localStorage.setItem('affinityneo_cloud_enabled','1');
+  cloudLastSnapshot=JSON.stringify(S);
+  render();
+  closeM();
+  if(!quiet)toast('클라우드 데이터를 불러왔어요. 이 기기에서 자동 동기화가 켜졌어요.');
+ }catch(e){toast(e.message||'클라우드 데이터를 불러오지 못했어요.');}
+ finally{cloudBusy=false;}
+}
+async function pushCloudNow(quiet=false){
+ const key=$('cloudKeyInput')?.value.trim()||cloudKey();
+ if(!key){if(!quiet)toast('먼저 JSONBin Access Key를 입력하고 키 저장을 눌러 주세요.');return}
+ localStorage.setItem('affinityneo_jsonbin_access_key',key);
+ if(cloudBusy)return;
+ cloudBusy=true;
+ try{
+  const payload=JSON.stringify(S);
+  const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID,{method:'PUT',headers:{'Content-Type':'application/json','X-Access-Key':key,'X-Bin-Versioning':'true'},body:payload});
+  if(!res.ok)throw new Error('JSONBin 저장 실패 ('+res.status+'). Access Key에 Bins Update 권한이 있는지 확인해 주세요.');
+  localStorage.setItem('affinityneo_cloud_enabled','1');
+  cloudLastSnapshot=payload;
+  if(!quiet){closeM();toast('이 기기의 데이터를 클라우드에 올렸어요. 다른 기기에서도 같은 Access Key로 불러오면 돼요.');}
+ }catch(e){if(!quiet)toast(e.message||'클라우드에 저장하지 못했어요.');}
+ finally{cloudBusy=false;if(cloudEnabled()&&cloudKey()&&cloudLastSnapshot!==JSON.stringify(S))queueCloudSave();}
+}
+async function pollCloud(){
+ if(!cloudEnabled()||!cloudKey()||cloudBusy)return;
+ cloudBusy=true;
+ try{
+  const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID+'/latest',{headers:{'X-Access-Key':cloudKey(),'X-Bin-Meta':'false'}});
+  if(!res.ok)return;
+  const data=await res.json(),remote=data.record||data;
+  if(!remote||!Array.isArray(remote.tasks)||!Array.isArray(remote.groups))return;
+  const remoteSnapshot=JSON.stringify(remote),localSnapshot=JSON.stringify(S);
+  if(remoteSnapshot===cloudLastSnapshot)return;
+  if(localSnapshot===cloudLastSnapshot){
+   localStorage.setItem('affinityneo_cloud_enabled','0');
+   localStorage.setItem('affinityneo_v3',remoteSnapshot);
+   load();
+   cloudLastSnapshot=JSON.stringify(S);
+   localStorage.setItem('affinityneo_cloud_enabled','1');
+   render();
+  }else{
+   toast('다른 기기에서 변경된 데이터가 있어요. 이 기기의 변경 사항을 먼저 저장한 뒤 다시 동기화해 주세요.');
+  }
+ }catch(e){console.warn('Cloud sync check failed',e)}
+ finally{cloudBusy=false;}
+}
+async function initCloudSync(){
+ if(cloudEnabled()&&cloudKey()){
+  await pullCloud(true);
+  if(cloudPollTimer)clearInterval(cloudPollTimer);
+  cloudPollTimer=setInterval(pollCloud,12000);
+ }
+}
+
 $('todayLabel').textContent=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
 load();render();
+initCloudSync();
 </script></body></html>
