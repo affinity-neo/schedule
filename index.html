@@ -222,6 +222,7 @@ const CLOUD_BIN_ID='6ad18e5fac6210605a35e11e';
 let cloudSaveTimer=null,cloudBusy=false,cloudLastSnapshot='',cloudPollTimer=null;
 function cloudKey(){return localStorage.getItem('affinityneo_jsonbin_access_key')||''}
 function cloudEnabled(){return localStorage.getItem('affinityneo_cloud_enabled')==='1'}
+function startCloudPolling(){if(cloudPollTimer)clearInterval(cloudPollTimer);cloudPollTimer=setInterval(pollCloud,12000)}
 function queueCloudSave(){
  if(!cloudEnabled()||!cloudKey()||cloudBusy)return;
  clearTimeout(cloudSaveTimer);
@@ -266,6 +267,7 @@ async function pullCloud(quiet=false){
   load();
   localStorage.setItem('affinityneo_cloud_enabled','1');
   cloudLastSnapshot=JSON.stringify(S);
+  startCloudPolling();
   render();
   closeM();
   if(!quiet)toast('클라우드 데이터를 불러왔어요. 이 기기에서 자동 동기화가 켜졌어요.');
@@ -284,6 +286,7 @@ async function pushCloudNow(quiet=false){
   if(!res.ok)throw new Error('JSONBin 저장 실패 ('+res.status+'). Access Key에 Bins Update 권한이 있는지 확인해 주세요.');
   localStorage.setItem('affinityneo_cloud_enabled','1');
   cloudLastSnapshot=payload;
+  startCloudPolling();
   if(!quiet){closeM();toast('이 기기의 데이터를 클라우드에 올렸어요. 다른 기기에서도 같은 Access Key로 불러오면 돼요.');}
  }catch(e){if(!quiet)toast(e.message||'클라우드에 저장하지 못했어요.');}
  finally{cloudBusy=false;if(cloudEnabled()&&cloudKey()&&cloudLastSnapshot!==JSON.stringify(S))queueCloudSave();}
@@ -314,8 +317,7 @@ async function pollCloud(){
 async function initCloudSync(){
  if(cloudEnabled()&&cloudKey()){
   await pullCloud(true);
-  if(cloudPollTimer)clearInterval(cloudPollTimer);
-  cloudPollTimer=setInterval(pollCloud,12000);
+  startCloudPolling();
  }
 }
 
