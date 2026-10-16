@@ -1,3 +1,5 @@
+const BIN_ID = "6ad18e5fac6210605a35e11e";
+const API_KEY = "$2a$10$L1h06sjV.M.clQmqIN.PWOwhKdpoButl3dh67vqCLQ2mn.Npbnb8C";
 <!doctype html>
 <html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AffinityNeo 업무 관리</title>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('affinityneo_theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light')}catch(e){}</script>
@@ -58,7 +60,19 @@ const SEED=[['북스','김보민 펜립 수정 메일 발송','진행 전','긴�
 const CHK=[['전날 밤','내일 마감 업무','내일 마감인 업무를 모두 확인하고 우선순위 설정',''],['전날 밤','수업 일정','내일 수업 일정 안내',''],['휴강은 전날 밤 · 재개는 이틀 전','첫 수업 안내','첫 수업이라면 학부모 첫인사 메시지 필요 여부 확인','회사 구글 독스 양식 링크'],['휴강은 전날 밤 · 재개는 이틀 전','휴강·재개 안내','휴강 후 재개 수업은 전날·당일 안내 여부 체크','재개일 전날 + 당일'],['휴강은 전날 밤 · 재개는 이틀 전','대기 업무','답변·파일 대기 업무의 후속 확인일 점검',''],['오전','장기 미진행 업무','진척 없는 업무를 확인하고 다음 행동 제안',''],['즉시','일정 충돌·누락 위험','충돌 또는 지연 위험이 있으면 즉시 보고',''],['전날 밤','투두메이트','오늘 실제 처리할 핵심 업무만 오늘 목록에 등록','내일 업무는 내일 목록에'],['중요 이슈 발생 시','즉시 보고','문제·영향·해결안·대체 일정 함께 보고',''],['업무 완료 시','완료 보드 이동','완료일 기록 후 진행 중 보드에서 제거',''],['업무 완료 시','결과 확인','사용자 완료 보고를 기준으로 처리하고, 필요하면 결과 링크 기록',''],['수업 휴강 시','재개 일정 등록','재개일과 전날/당일 안내 체크를 등록',''],['매일 보고','오전 요약','오늘 할 일·우선순위·마감·주의사항 간단히 보고','']];
 let S,selected=new Set(),col=new Set(),open=new Set(),GL={},GV=[],P=null,LK='',drag=null,tt;
 const newCfg=()=>({group:'company',sort:'none',fs:[],fp:[],fw:[],hidden:[],q:''}),L0=a=>a.map(x=>({n:x[0],c:x[1],d:!!x[2]}));
-const LB=k=>S.labels[k],lf=(k,n)=>LB(k).find(x=>x.n===n),lc=(k,n)=>(lf(k,n)||{}).c||'#808080',isDN=n=>!!(lf('status',n)||{}).d,isD=t=>isDN(t.status),gc=n=>(S.groups.find(g=>g.name===n)||{}).color||'#808080',V=()=>S.views.find(v=>v.id===S.cur)||S.views[0],cfg=()=>V().cfg,find=id=>S.tasks.find(t=>t.id===id),save=()=>localStorage.setItem('affinityneo_v3',JSON.stringify(S));
+const LB=k=>S.labels[k],lf=(k,n)=>LB(k).find(x=>x.n===n),lc=(k,n)=>(lf(k,n)||{}).c||'#808080',isDN=n=>!!(lf('status',n)||{}).d,isD=t=>isDN(t.status),gc=n=>(S.groups.find(g=>g.name===n)||{}).color||'#808080',V=()=>S.views.find(v=>v.id===S.cur)||S.views[0],cfg=()=>V().cfg,find=id=>S.tasks.find(t=>t.id===id),async function save() {
+  localStorage.setItem('affinityneo_v3', JSON.stringify(S));
+  try {
+    await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Master-Key': API_KEY
+      },
+      body: JSON.stringify(S)
+    });
+  } catch(e) {}
+}
 function load(){let raw=null;try{raw=JSON.parse(localStorage.getItem('affinityneo_v3'))}catch(e){}
 if(!raw){try{raw={tasks:JSON.parse(localStorage.getItem('affinityneo_tasks_v2')),groups:JSON.parse(localStorage.getItem('affinityneo_groups_v2'))}}catch(e){raw={}}}
 S=raw||{};S.tasks=S.tasks||SEED.map((r,i)=>({id:i+1,company:r[0],task:r[1],status:r[2],priority:r[3],due:'',memo:r[4]||'',person:'최선혜',doneAt:r[2]==='완료'?today():'',subs:(r[5]||[]).map((s,j)=>({id:(i+1)*100+j,task:s,status:'진행 전',due:'',memo:''}))}));
