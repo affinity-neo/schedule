@@ -256,7 +256,7 @@ async function pullCloud(quiet=false){
  cloudBusy=true;
  try{
   const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID+'/latest',{headers:{'X-Access-Key':key,'X-Bin-Meta':'false'}});
-  if(!res.ok)throw new Error('JSONBin 읽기 실패 ('+res.status+'). Access Key에 Bins Read 권한이 있는지 확인해 주세요.');
+  if(!res.ok){const detail=await res.text();throw new Error('JSONBin 읽기 실패 ('+res.status+'): '+detail);}
   const data=await res.json();
   const remote=data.record||data;
   if(!remote||!Array.isArray(remote.tasks)||!Array.isArray(remote.groups)){
@@ -283,7 +283,7 @@ async function pushCloudNow(quiet=false){
  try{
   const payload=JSON.stringify(S);
   const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID,{method:'PUT',headers:{'Content-Type':'application/json','X-Access-Key':key,'X-Bin-Versioning':'true'},body:payload});
-  if(!res.ok)throw new Error('JSONBin 저장 실패 ('+res.status+'). Access Key에 Bins Update 권한이 있는지 확인해 주세요.');
+  if(!res.ok){const detail=await res.text();throw new Error('JSONBin 저장 실패 ('+res.status+'): '+detail);}
   localStorage.setItem('affinityneo_cloud_enabled','1');
   cloudLastSnapshot=payload;
   startCloudPolling();
