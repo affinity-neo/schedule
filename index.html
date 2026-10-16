@@ -219,7 +219,7 @@ function importData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader
 
 /* ---------- JSONBin cloud sync ---------- */
 const CLOUD_BIN_ID='6ad18e5fac6210605a35e11e';
-let cloudSaveTimer=null,cloudBusy=false;
+let cloudSaveTimer=null,cloudBusy=false,cloudLastSnapshot='',cloudPollTimer=null;
 function cloudKey(){return localStorage.getItem('affinityneo_jsonbin_access_key')||''}
 function cloudEnabled(){return localStorage.getItem('affinityneo_cloud_enabled')==='1'}
 function queueCloudSave(){
@@ -265,6 +265,7 @@ async function pullCloud(quiet=false){
   localStorage.setItem('affinityneo_v3',JSON.stringify(remote));
   load();
   localStorage.setItem('affinityneo_cloud_enabled','1');
+  cloudLastSnapshot=JSON.stringify(S);
   render();
   closeM();
   if(!quiet)toast('클라우드 데이터를 불러왔어요. 이 기기에서 자동 동기화가 켜졌어요.');
@@ -273,21 +274,49 @@ async function pullCloud(quiet=false){
 }
 async function pushCloudNow(quiet=false){
  const key=$('cloudKeyInput')?.value.trim()||cloudKey();
- if(!key){toast('먼저 JSONBin Access Key를 입력하고 키 저장을 눌러 주세요.');return}
+ if(!key){if(!quiet)toast('먼저 JSONBin Access Key를 입력하고 키 저장을 눌러 주세요.');return}
  localStorage.setItem('affinityneo_jsonbin_access_key',key);
  if(cloudBusy)return;
  cloudBusy=true;
  try{
-  const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID,{method:'PUT',headers:{'Content-Type':'application/json','X-Access-Key':key,'X-Bin-Versioning':'true'},body:JSON.stringify(S)});
+  const payload=JSON.stringify(S);
+  const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID,{method:'PUT',headers:{'Content-Type':'application/json','X-Access-Key':key,'X-Bin-Versioning':'true'},body:payload});
   if(!res.ok)throw new Error('JSONBin 저장 실패 ('+res.status+'). Access Key에 Bins Update 권한이 있는지 확인해 주세요.');
   localStorage.setItem('affinityneo_cloud_enabled','1');
-  closeM();
-  if(!quiet)toast('이 기기의 데이터를 클라우드에 올렸어요. 다른 기기에서도 같은 Access Key로 불러오면 돼요.');
+  cloudLastSnapshot=payload;
+  if(!quiet){closeM();toast('이 기기의 데이터를 클라우드에 올렸어요. 다른 기기에서도 같은 Access Key로 불러오면 돼요.');}
  }catch(e){if(!quiet)toast(e.message||'클라우드에 저장하지 못했어요.');}
+ finally{cloudBusy=false;if(cloudEnabled()&&cloudKey()&&cloudLastSnapshot!==JSON.stringify(S))queueCloudSave();}
+}
+async function pollCloud(){
+ if(!cloudEnabled()||!cloudKey()||cloudBusy)return;
+ cloudBusy=true;
+ try{
+  const res=await fetch('https://api.jsonbin.io/v3/b/'+CLOUD_BIN_ID+'/latest',{headers:{'X-Access-Key':cloudKey(),'X-Bin-Meta':'false'}});
+  if(!res.ok)return;
+  const data=await res.json(),remote=data.record||data;
+  if(!remote||!Array.isArray(remote.tasks)||!Array.isArray(remote.groups))return;
+  const remoteSnapshot=JSON.stringify(remote),localSnapshot=JSON.stringify(S);
+  if(remoteSnapshot===cloudLastSnapshot)return;
+  if(localSnapshot===cloudLastSnapshot){
+   localStorage.setItem('affinityneo_cloud_enabled','0');
+   localStorage.setItem('affinityneo_v3',remoteSnapshot);
+   load();
+   cloudLastSnapshot=JSON.stringify(S);
+   localStorage.setItem('affinityneo_cloud_enabled','1');
+   render();
+  }else{
+   toast('다른 기기에서 변경된 데이터가 있어요. 이 기기의 변경 사항을 먼저 저장한 뒤 다시 동기화해 주세요.');
+  }
+ }catch(e){console.warn('Cloud sync check failed',e)}
  finally{cloudBusy=false;}
 }
 async function initCloudSync(){
- if(cloudEnabled()&&cloudKey())await pullCloud(true);
+ if(cloudEnabled()&&cloudKey()){
+  await pullCloud(true);
+  if(cloudPollTimer)clearInterval(cloudPollTimer);
+  cloudPollTimer=setInterval(pollCloud,12000);
+ }
 }
 
 $('todayLabel').textContent=new Date().toLocaleDateString('ko-KR',{year:'numeric',month:'long',day:'numeric',weekday:'short'});
